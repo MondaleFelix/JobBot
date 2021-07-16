@@ -3,11 +3,11 @@ package indeed
 import (
 	"fmt"
 	"log"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/MondaleFelix/Jobbot/feeds"
-	"github.com/MondaleFelix/Jobbot/models"
 	"strings"
 
+	"github.com/MondaleFelix/Jobbot/feeds"
+	"github.com/MondaleFelix/Jobbot/models"
+	"github.com/PuerkitoBio/goquery"
 )
 
 type PublicFeedConfig struct {
@@ -22,9 +22,9 @@ type PublicFeed struct {
 
 func NewPublicFeed(name string) *PublicFeed {
 	config := &PublicFeedConfig{}
-	config.host = "https://www.indeed.com/"
+	config.host = "https://www.indeed.com"
 	return &PublicFeed{
-		config: config,
+		config:   config,
 		BaseFeed: feeds.NewBaseFeed(name),
 	}
 }
@@ -32,7 +32,7 @@ func NewPublicFeed(name string) *PublicFeed {
 func (feed *PublicFeed) Connect() {
 	counter := 0
 	doc := feed.GetDocument(fmt.Sprintf("%s/obs?q=golang&sort=date&fromage1&start", feed.config.host))
-	doc.Find("td#resultsCol .jobsearch-SerpJobCard").Each(func(i int, s *goquery.Selection){
+	doc.Find("td#resultsCol .jobsearch-SerpJobCard").Each(func(i int, s *goquery.Selection) {
 		if counter < feed.Limit() {
 			id, exists := s.Attr("data-jk")
 			if exists {
@@ -47,22 +47,23 @@ func (feed *PublicFeed) Connect() {
 
 				apply, exists := job.Find("#applyButtonLinkContainer a").Attr("href")
 				if exists {
-					saved, err := feed.SavePost(&models.Post{
-						Path: path,
-						Name: feed.Name(),
-						Host: feed.config.host,
-						Title: strings.TrimSpace(title), 
-						Apply: strings.TrimSpace(apply), 
-						Company: strings.TrimSpace(company),
-						Salary: strings.TrimSpace(salary),
-						Postion: strings.TrimSpace(position)
-					})
-
+					post := &models.Post{
+						Path:     path,
+						Name:     feed.Name(),
+						Host:     feed.config.host,
+						Title:    strings.TrimSpace(title),
+						Apply:    strings.TrimSpace(apply),
+						Company:  strings.TrimSpace(company),
+						Salary:   strings.TrimSpace(salary),
+						Position: strings.TrimSpace(position),
+					}
+					saved, err := feed.SavePost(post)
 					if err != nil {
 						log.Fatal(err)
 					}
 					if saved {
-						counter ++
+						log.Println(fmt.Sprintf("Post:%v saved successfully ", post))
+						counter++
 					}
 				}
 			}

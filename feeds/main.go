@@ -1,5 +1,16 @@
 package feeds
 
+import (
+	"context"
+	"log"
+	"strings"
+
+	"github.com/MondaleFelix/Jobbot/models"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/chromedp/cdproto/dom"
+	"github.com/chromedp/chromedp"
+)
+
 type PublicFeed interface {
 	Connect()                                 // Connects to the feed
 	Name() string                             // Name of connected feed
@@ -8,37 +19,35 @@ type PublicFeed interface {
 	GetDocument(url string) *goquery.Document // Parse Post
 }
 
-
 type BaseFeed struct {
-
 	limit int
-	name string
-	posts *models.PostHandler
+	name  string
+	posts *models.PostsHandler
 }
 
 func NewBaseFeed(name string) *BaseFeed {
 	return &BaseFeed{
 		limit: 10,
-		name: name,
-		posts: models.NewPostHandler()
+		name:  name,
+		posts: models.NewPostsHandler(),
 	}
 }
 
-func (f *BaseFeed) Name() string{
+func (f *BaseFeed) Name() string {
 	return f.name
 }
 
-func (f *BaseFeed) Limit() int{
+func (f *BaseFeed) Limit() int {
 	return f.limit
 }
 
-func (f *BaseFeed) SavePost(post *models.Post) (bool, err) {
-	c, err := f.posts.GetPostCount(post.Name, post.Path)
+func (f *BaseFeed) SavePost(post *models.Post) (bool, error) {
+	c, err := f.posts.GetPostsCount(post.Name, post.Path)
 	if err != nil {
-		return false, err 
+		return false, err
 	}
 
-	if c ==1 {
+	if c == 1 {
 		return false, nil
 	}
 
@@ -46,7 +55,7 @@ func (f *BaseFeed) SavePost(post *models.Post) (bool, err) {
 }
 
 func (f *BaseFeed) GetDocument(url string) *goquery.Document {
-	ctx, cancel := chrome.NewContext(context.Background())
+	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
 	var doc *goquery.Document
@@ -65,7 +74,7 @@ func (f *BaseFeed) GetDocument(url string) *goquery.Document {
 
 			doc, err = goquery.NewDocumentFromReader(strings.NewReader(res))
 			if err != nil {
-				return err 
+				return err
 			}
 
 			return nil
@@ -73,7 +82,7 @@ func (f *BaseFeed) GetDocument(url string) *goquery.Document {
 		}),
 	}
 
-	if err := chromedp.Run(ctx,tasks); err != nil {
+	if err := chromedp.Run(ctx, tasks); err != nil {
 		log.Fatal(err)
 	}
 

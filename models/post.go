@@ -1,60 +1,65 @@
 package models
 
-type Post struct {
+import (
+	"time"
 
-	ID bson.ObjectId 'bson:"_id,omitempty"'
-	Path string
-	Name string
-	Host string
-	Title string
-	Salary string
-	Position string
-	Company string
+	"github.com/MondaleFelix/JobBot/database"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+)
+
+type Post struct {
+	ID        bson.ObjectId `bson:"_id,omitempty"`
+	Path      string
+	Name      string
+	Host      string
+	Title     string
+	Salary    string
+	Position  string
+	Company   string
+	Apply     string
 	Processed bool
-	Created time.Time
-	Updated time.Time
+	Created   time.Time
+	Updated   time.Time
 }
 
-type PostHandler struct {
+type PostsHandler struct {
 	posts *mgo.Collection
 }
 
-func NewPostHandler() *PostHandler {
-	return &PostHandler{
+func NewPostsHandler() *PostsHandler {
+	return &PostsHandler{
 		posts: database.CreateConn().Posts,
 	}
 }
 
-func (h *PostHandler) FindPosts(limit int)([]*Post, error){
+func (h *PostsHandler) FindPosts(limit int) ([]*Post, error) {
 	var ps []*Post
 	return ps, h.posts.Find(bson.M{
-		"processed" : false,
-	}).Limit(limit).Sort(feild: : "-created").All(&ps)
-
+		"processed": false,
+	}).Limit(limit).Sort("-created").All(&ps)
 }
 
-func (h *PostHandler) Processed(ps []*Post]) error {
+func (h *PostsHandler) Processed(ps []*Post) error {
 	bulk := h.posts.Bulk()
 	for _, p := range ps {
-		bulk.UpdateAll(bson.M{"_id":p.ID}, bson.M{
-			"$set" :bson.M{"processed": true, "updated": time.Now()},
+		bulk.UpdateAll(bson.M{"_id": p.ID}, bson.M{
+			"$set": bson.M{"processed": true, "updated": time.Now()},
 		})
 	}
 	_, err := bulk.Run()
 	return err
 }
 
-func (h *PostHandler) GetPostCount(name, path string) (int, error) {
+func (h *PostsHandler) GetPostsCount(name, path string) (int, error) {
 	return h.posts.Find(bson.M{
 		"name": name,
 		"path": path,
 	}).Count()
 }
 
-func (h *PostHandler) SavePost(post *Post) error {
-
+func (h *PostsHandler) SavePost(post *Post) error {
 	post.Created = time.Now()
 	post.Processed = false
 	return h.posts.Insert(post)
 }
-
