@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/MondaleFelix/Jobbot/feeds"
-	"github.com/MondaleFelix/indeed"
+	"github.com/MondaleFelix/Jobbot/feeds/indeed"
 )
 
 // "github.com/joho/godotenv"
