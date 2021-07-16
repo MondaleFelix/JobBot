@@ -1,7 +1,28 @@
 package main
 
-func parseData() {
+import (
+	"github.com/MondaleFelix/Jobbot/feeds"
+	"github.com/MondaleFelix/indeed"
+)
 
+// "github.com/joho/godotenv"
+
+// func init() {
+// 	if err := godotenv.Load(); err != nil {
+// 		log.Fatal(err)
+// 	}
+// }
+
+func createFeed(feedName string) feeds.PublicFeed {
+	switch feedName {
+	case "indeed":
+		return indeed.NewPublicFeed(feedName)
+	}
+	return nil
+}
+
+func parseData() {
+	go createFeed("indeed").Connect()
 }
 
 func broadcastData() {

@@ -1,9 +1,13 @@
 package indeed
 
 import (
-	"go/format"
-
+	"fmt"
+	"log"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/MondaleFelix/Jobbot/feeds"
+	"github.com/MondaleFelix/Jobbot/models"
+	"strings"
+
 )
 
 type PublicFeedConfig struct {
@@ -28,7 +32,7 @@ func NewPublicFeed(name string) *PublicFeed {
 func (feed *PublicFeed) Connect() {
 	counter := 0
 	doc := feed.GetDocument(fmt.Sprintf(format: "%s/obs?q=golang&sort=date&fromage1&start", feed.config.host))
-	doc.Find(selector: "#tdresultsCol .jobsearch-SerpJobCard").Each(func(i int, s *goquery.Selection){
+	doc.Find(selector: "td#resultsCol .jobsearch-SerpJobCard").Each(func(i int, s *goquery.Selection){
 		if counter < feed.Limit() {
 			id, exists := s.Attr(attrName: "data-jk")
 			if exists {

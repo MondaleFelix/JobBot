@@ -40,7 +40,8 @@ func (h *PostHandler) Processed(ps []*Post]) error {
 			"$set" :bson.M{"processed": true, "updated": time.Now()},
 		})
 	}
-	
+	_, err := bulk.Run()
+	return err
 }
 
 func (h *PostHandler) GetPostCount(name, path string) (int, error) {
