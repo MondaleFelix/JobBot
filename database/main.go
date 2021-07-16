@@ -10,7 +10,7 @@ type Mongo struct {
 }
 
 func CreateConn() *Mongo{
-	session, err := mgo.Dial(os.Getenv( key:"MONGO_URL"))
+	session, err := mgo.Dial(os.Getenv(key:"MONGO_URL"))
 	if err != nil {
 		panic(err)
 	}
