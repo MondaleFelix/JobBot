@@ -21,6 +21,7 @@ type PublicFeed struct {
 }
 
 func NewPublicFeed(name string) *PublicFeed {
+	log.Println(fmt.Sprintf("Feed %s connected", name))
 	config := &PublicFeedConfig{}
 	config.host = "https://www.indeed.com"
 	return &PublicFeed{
@@ -31,13 +32,18 @@ func NewPublicFeed(name string) *PublicFeed {
 
 func (feed *PublicFeed) Connect() {
 	counter := 0
-	doc := feed.GetDocument(fmt.Sprintf("%s/obs?q=golang&sort=date&fromage1&start", feed.config.host))
+	url := fmt.Sprintf("%s/jobs?q=golang&sort=date&fromage1&start", feed.config.host)
+	log.Println(fmt.Sprintf("Request to url: %s ", url))
+
+	doc := feed.GetDocument(url)
 	doc.Find("td#resultsCol .jobsearch-SerpJobCard").Each(func(i int, s *goquery.Selection) {
 		if counter < feed.Limit() {
 			id, exists := s.Attr("data-jk")
 			if exists {
 				path := fmt.Sprintf("viewjob?jk=%s", id)
 				href := fmt.Sprintf("/%s%s", feed.config.host, path)
+				log.Println(fmt.Sprintf("Request to page: %s ", href))
+
 				job := feed.GetDocument(href)
 
 				title := job.Find(".jobsearch-JobInfoHeader-title-job").Text()
@@ -47,6 +53,7 @@ func (feed *PublicFeed) Connect() {
 
 				apply, exists := job.Find("#applyButtonLinkContainer a").Attr("href")
 				if exists {
+
 					post := &models.Post{
 						Path:     path,
 						Name:     feed.Name(),
@@ -57,6 +64,7 @@ func (feed *PublicFeed) Connect() {
 						Salary:   strings.TrimSpace(salary),
 						Position: strings.TrimSpace(position),
 					}
+
 					saved, err := feed.SavePost(post)
 					if err != nil {
 						log.Fatal(err)
